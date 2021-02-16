@@ -12,16 +12,19 @@ class RememberingGenerator:
         self.num_args = num_args
         self.kwargs_keys = kwargs_keys
         self.parameters = None
+        self.args = None
+        self.kwargs = None
 
     def __iter__(self):
         return self
 
     def __next__(self):
         self.parameters = next(self.generator)
-        return self.function(
-            *self.parameters[: self.num_args],
-            **{k: v for k, v in zip(self.kwargs_keys, self.parameters[self.num_args :])}
-        )
+        self.args = self.parameters[: self.num_args]
+        self.kwargs = {
+            k: v for k, v in zip(self.kwargs_keys, self.parameters[self.num_args :])
+        }
+        return self.function(*self.args, **self.kwargs)
 
 
 class Expander:
