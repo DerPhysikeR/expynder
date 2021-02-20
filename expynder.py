@@ -1,8 +1,27 @@
 from itertools import product
+import builtins as bi
 
 
 def expand(function):
     return Expander(function)
+
+
+class MyZip:
+    def __init__(self, *iterables):
+        self.iterators = [iter(i) for i in iterables]
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        items = []
+        for it in self.iterators:
+            items.append(next(it))
+        return tuple(items)
+
+
+def zip(*iterables):
+    return MyZip(*iterables)
 
 
 class RememberingGenerator:
@@ -22,23 +41,9 @@ class RememberingGenerator:
         self.parameters = next(self.generator)
         self.args = self.parameters[: self.num_args]
         self.kwargs = {
-            k: v for k, v in zip(self.kwargs_keys, self.parameters[self.num_args :])
+            k: v for k, v in bi.zip(self.kwargs_keys, self.parameters[self.num_args :])
         }
         return self.function(*self.args, **self.kwargs)
-
-
-class MyZip:
-    def __init__(self, *iterables):
-        self.iterators = [iter(i) for i in iterables]
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        items = []
-        for it in self.iterators:
-            items.append(next(it))
-        return tuple(items)
 
 
 class Expander:
