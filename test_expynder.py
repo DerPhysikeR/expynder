@@ -36,3 +36,12 @@ def test_myzip():
     for i, items in enumerate(gen := zip(iterable, iterable)):
         assert items == results[i]
 
+
+def test_nested_expanders():
+    inputs = [1, 2, 3]
+    results = [3, 6, 9]
+    parameters = [(1, 2), (2, 4), (3, 6)]
+    for i, result in enumerate(gen := add.zip(inputs, add.zip(inputs, inputs))):
+        assert result == results[i]
+        assert gen.parameters == parameters[i]
+
