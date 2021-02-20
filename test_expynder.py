@@ -1,4 +1,4 @@
-from expynder import expand, zip
+from expynder import expand, ezip
 
 
 @expand
@@ -30,10 +30,10 @@ def test_parameters():
         assert gen.parameters == parameters[i]
 
 
-def test_myzip():
+def test_ezip():
     iterable = [1, 2, 3]
     results = [(1, 1), (2, 2), (3, 3)]
-    for i, items in enumerate(gen := zip(iterable, iterable)):
+    for i, items in enumerate(gen := ezip(iterable, iterable)):
         assert items == results[i]
 
 

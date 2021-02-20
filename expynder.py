@@ -1,5 +1,4 @@
 from itertools import product
-import builtins as bi
 
 
 def expand(function):
@@ -20,7 +19,7 @@ class MyZip:
         return tuple(items)
 
 
-def zip(*iterables):
+def ezip(*iterables):
     return MyZip(*iterables)
 
 
@@ -41,7 +40,7 @@ class RememberingGenerator:
         self.parameters = next(self.generator)
         self.args = self.parameters[: self.num_args]
         self.kwargs = {
-            k: v for k, v in bi.zip(self.kwargs_keys, self.parameters[self.num_args :])
+            k: v for k, v in zip(self.kwargs_keys, self.parameters[self.num_args :])
         }
         return self.function(*self.args, **self.kwargs)
 
@@ -64,4 +63,4 @@ class Expander:
         return self.expand(product, *args, **kwargs)
 
     def zip(self, *args, **kwargs):
-        return self.expand(zip, *args, **kwargs)
+        return self.expand(ezip, *args, **kwargs)
