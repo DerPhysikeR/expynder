@@ -27,6 +27,20 @@ class RememberingGenerator:
         return self.function(*self.args, **self.kwargs)
 
 
+class MyZip:
+    def __init__(self, *iterables):
+        self.iterators = [iter(i) for i in iterables]
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        items = []
+        for it in self.iterators:
+            items.append(next(it))
+        return tuple(items)
+
+
 class Expander:
     def __init__(self, function_to_expand):
         self.function = function_to_expand

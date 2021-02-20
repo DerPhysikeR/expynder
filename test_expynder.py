@@ -1,4 +1,4 @@
-from expynder import expand
+from expynder import expand, MyZip
 
 
 @expand
@@ -28,3 +28,11 @@ def test_parameters():
     for i, result in enumerate((gen := add.product([1, 2], [3, 4]))):
         assert result == results[i]
         assert gen.parameters == parameters[i]
+
+
+def test_myzip():
+    iterable = [1, 2, 3]
+    results = [(1, 1), (2, 2), (3, 3)]
+    for i, items in enumerate(gen := MyZip(iterable, iterable)):
+        assert items == results[i]
+
