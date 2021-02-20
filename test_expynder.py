@@ -45,3 +45,13 @@ def test_nested_expanders():
         assert result == results[i]
         assert gen.parameters == parameters[i]
 
+
+def test_call_stack():
+    inputs = [1, 2, 3]
+    results = [3, 6, 9]
+    parameters = [(1, 2), (2, 4), (3, 6)]
+    call_stack = ["add(1, add(1, 1))", "add(2, add(2, 2))", "add(3, add(3, 3))"]
+    for i, result in enumerate(gen := add.zip(inputs, add.zip(inputs, inputs))):
+        assert result == results[i]
+        assert gen.parameters == parameters[i]
+        assert gen.call_stack == call_stack[i]

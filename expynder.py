@@ -33,6 +33,16 @@ class RememberingGenerator:
         self.args = None
         self.kwargs = None
 
+    @property
+    def call_stack(self):
+        call_parameters = []
+        for it, para in zip(self.generator.iterators, self.parameters):
+            if type(it) == RememberingGenerator:
+                call_parameters.append(it.call_stack)
+            else:
+                call_parameters.append(str(para))
+        return f"{self.function.__name__}({', '.join(call_parameters)})"
+
     def __iter__(self):
         return self
 
