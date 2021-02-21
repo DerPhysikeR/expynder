@@ -1,76 +1,73 @@
-from itertools import product
+from collections import namedtuple
+from itertools import chain, product
 
 
-def expand(function):
-    return Expander(function)
-
-
-class MyZip:
-    def __init__(self, *iterables):
-        self.iterators = [iter(i) for i in iterables]
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        items = []
-        for it in self.iterators:
-            items.append(next(it))
-        return tuple(items)
-
-
-def ezip(*iterables):
-    return MyZip(*iterables)
+Monad = namedtuple("Monad", "function, result, args, kwargs")
 
 
 class RememberingGenerator:
-    def __init__(self, function, generator, num_args, kwargs_keys):
+    def __init__(self, expander, generator, iterargs, iterkwargs):
+        self.expander = expander
         self.generator = generator
-        self.function = function
-        self.num_args = num_args
-        self.kwargs_keys = kwargs_keys
-        self.parameters = None
-        self.args = None
-        self.kwargs = None
+        self.iterargs = iterargs
+        self.iterkwargs = iterkwargs
+        self.caller = expander
+        self._monadic = False
+        self.iterators = None
+        self.iterator = None
+        self.args = []
+        self.kwargs = {}
 
-    @property
-    def call_stack(self):
-        call_parameters = []
-        for it, para in zip(self.generator.iterators, self.parameters):
-            if type(it) == RememberingGenerator:
-                call_parameters.append(it.call_stack)
-            else:
-                call_parameters.append(str(para))
-        return f"{self.function.__name__}({', '.join(call_parameters)})"
+    # @property
+    # def call_stack(self):
+    #     call_parameters = []
+    #     for it, para in zip(self.generator.iterators, self.parameters):
+    #         if type(it) == RememberingGenerator:
+    #             call_parameters.append(it.call_stack)
+    #         else:
+    #             call_parameters.append(str(para))
+    #     return f"{self.function.__name__}({', '.join(call_parameters)})"
+
+    def set_monadic(self):
+        self._monadic = True
 
     def __iter__(self):
+        self.iterators = [iter(arg) for arg in chain(self.iterargs, self.iterkwargs.values())]
+        for it in self.iterators:
+            try:
+                it.set_monadic()
+            except AttributeError:
+                pass
+        self.iterator = self.generator(*self.iterators)
         return self
 
     def __next__(self):
-        self.parameters = next(self.generator)
-        self.args = self.parameters[: self.num_args]
-        self.kwargs = {
-            k: v for k, v in zip(self.kwargs_keys, self.parameters[self.num_args :])
-        }
-        return self.function(*self.args, **self.kwargs)
+        params = next(self.iterator)
+        self.args = tuple([par.result if type(par) == Monad else par for par in params])
+        result = self.caller(*self.args)
+        if self._monadic:
+            return Monad(self.expander.function, result, self.args, self.kwargs)
+        return result
 
 
 class Expander:
-    def __init__(self, function_to_expand):
-        self.function = function_to_expand
+    def __init__(self, function):
+        self.function = function
 
     def __call__(self, *args, **kwargs):
         return self.function(*args, **kwargs)
 
-    def expand(self, expander, *args, **kwargs):
-        # inject arbitrary expander functions, which take args and kwargs, e.g., expand only args
-        generator_object = expander(*(list(args) + list(kwargs.values())))
+    def _expand(self, generator, *iterargs, **iterkwargs):
         return RememberingGenerator(
-            self.function, generator_object, len(args), kwargs.keys()
+            self, generator, iterargs, iterkwargs
         )
 
-    def product(self, *args, **kwargs):
-        return self.expand(product, *args, **kwargs)
+    def product(self, *iterargs, **iterkwargs):
+        return self._expand(product, *iterargs, **iterkwargs)
 
-    def zip(self, *args, **kwargs):
-        return self.expand(ezip, *args, **kwargs)
+    def zip(self, *iterargs, **iterkwargs):
+        return self._expand(zip, *iterargs, **iterkwargs)
+
+
+def expand(function):
+    return Expander(function)

@@ -1,4 +1,4 @@
-from expynder import expand, ezip
+from expynder import expand
 
 
 @expand
@@ -19,22 +19,7 @@ def test_parameters():
     parameters = ((1, 3), (1, 4), (2, 3), (2, 4))
     for i, result in enumerate(gen := add.product([1, 2], [3, 4])):
         assert result == results[i]
-        assert gen.parameters == parameters[i]
-
-
-def test_parameters():
-    results = (4, 5, 5, 6)
-    parameters = ((1, 3), (1, 4), (2, 3), (2, 4))
-    for i, result in enumerate((gen := add.product([1, 2], [3, 4]))):
-        assert result == results[i]
-        assert gen.parameters == parameters[i]
-
-
-def test_ezip():
-    iterable = [1, 2, 3]
-    results = [(1, 1), (2, 2), (3, 3)]
-    for i, items in enumerate(gen := ezip(iterable, iterable)):
-        assert items == results[i]
+        assert gen.args == parameters[i]
 
 
 def test_nested_expanders():
@@ -43,15 +28,15 @@ def test_nested_expanders():
     parameters = [(1, 2), (2, 4), (3, 6)]
     for i, result in enumerate(gen := add.zip(inputs, add.zip(inputs, inputs))):
         assert result == results[i]
-        assert gen.parameters == parameters[i]
+        assert gen.args == parameters[i]
 
 
-def test_call_stack():
-    inputs = [1, 2, 3]
-    results = [3, 6, 9]
-    parameters = [(1, 2), (2, 4), (3, 6)]
-    call_stack = ["add(1, add(1, 1))", "add(2, add(2, 2))", "add(3, add(3, 3))"]
-    for i, result in enumerate(gen := add.zip(inputs, add.zip(inputs, inputs))):
-        assert result == results[i]
-        assert gen.parameters == parameters[i]
-        assert gen.call_stack == call_stack[i]
+# def test_call_stack():
+#     inputs = [1, 2, 3]
+#     results = [3, 6, 9]
+#     parameters = [(1, 2), (2, 4), (3, 6)]
+#     call_stack = ["add(1, add(1, 1))", "add(2, add(2, 2))", "add(3, add(3, 3))"]
+#     for i, result in enumerate(gen := add.zip(inputs, add.zip(inputs, inputs))):
+#         assert result == results[i]
+#         assert gen.parameters == parameters[i]
+#         assert gen.call_stack == call_stack[i]
