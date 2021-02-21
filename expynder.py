@@ -1,4 +1,5 @@
 from collections import namedtuple
+from functools import update_wrapper
 from itertools import chain, product
 
 
@@ -8,8 +9,8 @@ class Monad(namedtuple("Monad", "function, result, args, kwargs")):
 
 
 class RememberingGenerator:
-    def __init__(self, expander, generator, iterargs, iterkwargs):
-        self._expander = expander
+    def __init__(self, function, generator, iterargs, iterkwargs):
+        self._function = function
         self._generator = generator
         self._iterargs, self._iterkwargs = iterargs, iterkwargs
         self._monadic = False
@@ -49,8 +50,8 @@ class RememberingGenerator:
 
     def __next__(self):
         self._update_args_kwargs()
-        result = self._expander(*self.args, *self.kwargs)
-        self._last_monad = Monad(self._expander.function, result, self._args, self._kwargs)
+        result = self._function(*self.args, *self.kwargs)
+        self._last_monad = Monad(self._function, result, self._args, self._kwargs)
         if self._monadic:
             return self._last_monad
         return result
@@ -59,6 +60,7 @@ class RememberingGenerator:
 class Expander:
     def __init__(self, function):
         self.function = function
+        update_wrapper(self, function)
 
     def __call__(self, *args, **kwargs):
         return self.function(*args, **kwargs)
