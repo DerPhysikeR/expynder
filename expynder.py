@@ -19,7 +19,7 @@ class RememberingGenerator:
         self._monadic = False
         self._iterator = None
         self._last_monad = None
-        self._args, self._kwargs = (), {} # including monads
+        self._args, self._kwargs = (), {}  # including monads
 
     @property
     def args(self):
@@ -43,7 +43,9 @@ class RememberingGenerator:
         self._monadic = True
 
     def __iter__(self):
-        iterators = [iter(arg) for arg in chain(self._iterargs, self._iterkwargs.values())]
+        iterators = [
+            iter(arg) for arg in chain(self._iterargs, self._iterkwargs.values())
+        ]
         for it in iterators:
             try:
                 it.set_monadic()
@@ -55,7 +57,9 @@ class RememberingGenerator:
     def _update_args_kwargs(self):
         params = next(self._iterator)
         self._args = params[: len(self._iterargs)]
-        self._kwargs = {k: v for k, v in zip(self._iterkwargs.keys(), params[len(self._iterargs):])}
+        self._kwargs = {
+            k: v for k, v in zip(self._iterkwargs.keys(), params[len(self._iterargs) :])
+        }
 
     def __next__(self):
         self._update_args_kwargs()
@@ -75,9 +79,7 @@ class Expander:
         return self.function(*args, **kwargs)
 
     def _expand(self, generator, *iterargs, **iterkwargs):
-        return RememberingGenerator(
-            self, generator, iterargs, iterkwargs
-        )
+        return RememberingGenerator(self, generator, iterargs, iterkwargs)
 
     def product(self, *iterargs, **iterkwargs):
         return self._expand(product, *iterargs, **iterkwargs)

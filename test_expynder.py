@@ -46,8 +46,12 @@ def test_call_stack_with_kwargs():
     inputs = [1, 2, 3]
     results = [3, 6, 9]
     args = [(1,), (2,), (3,)]
-    kwargs = [{'b': 2}, {'b': 4}, {'b': 6}]
-    call_stack = ["add(1, b=add(1, b=1))", "add(2, b=add(2, b=2))", "add(3, b=add(3, b=3))"]
+    kwargs = [{"b": 2}, {"b": 4}, {"b": 6}]
+    call_stack = [
+        "add(1, b=add(1, b=1))",
+        "add(2, b=add(2, b=2))",
+        "add(3, b=add(3, b=3))",
+    ]
     for i, result in enumerate(gen := add.zip(inputs, b=add.zip(inputs, b=inputs))):
         assert result == results[i]
         assert gen.args == args[i]
