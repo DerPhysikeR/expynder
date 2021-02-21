@@ -5,7 +5,10 @@ from itertools import chain, product
 
 class Monad(namedtuple("Monad", "function, result, args, kwargs")):
     def __str__(self):
-        return f"{self.function.__name__}({', '.join(str(arg) for arg in self.args)})"
+        substrings = []
+        substrings.extend(str(arg) for arg in self.args)
+        substrings.extend(f"{k}={v}" for k, v in self.kwargs.items())
+        return f"{self.function.__name__}({', '.join(substrings)})"
 
 
 class RememberingGenerator:
@@ -24,7 +27,13 @@ class RememberingGenerator:
 
     @property
     def kwargs(self):
-        return {k: v.result if type(v) is Monad else v for k, v in self._kwargs}
+        kwargs = {}
+        for k, v in self._kwargs.items():
+            if type(v) is Monad:
+                kwargs[k] = v.result
+            else:
+                kwargs[k] = v
+        return kwargs
 
     @property
     def call_stack(self):
@@ -50,7 +59,7 @@ class RememberingGenerator:
 
     def __next__(self):
         self._update_args_kwargs()
-        result = self._function(*self.args, *self.kwargs)
+        result = self._function(*self.args, **self.kwargs)
         self._last_monad = Monad(self._function, result, self._args, self._kwargs)
         if self._monadic:
             return self._last_monad
