@@ -2,7 +2,9 @@ from collections import namedtuple
 from itertools import chain, product
 
 
-Monad = namedtuple("Monad", "function, result, args, kwargs")
+class Monad(namedtuple("Monad", "function, result, args, kwargs")):
+    def __str__(self):
+        return f"{self.function.__name__}({', '.join(str(arg) for arg in self.args)})"
 
 
 class RememberingGenerator:
@@ -15,18 +17,14 @@ class RememberingGenerator:
         self._monadic = False
         self.iterators = None
         self.iterator = None
-        self.args = []
+        self.last_monad = None
+        self._args = ()
+        self.args = ()
         self.kwargs = {}
 
-    # @property
-    # def call_stack(self):
-    #     call_parameters = []
-    #     for it, para in zip(self.generator.iterators, self.parameters):
-    #         if type(it) == RememberingGenerator:
-    #             call_parameters.append(it.call_stack)
-    #         else:
-    #             call_parameters.append(str(para))
-    #     return f"{self.function.__name__}({', '.join(call_parameters)})"
+    @property
+    def call_stack(self):
+        return str(self.last_monad)
 
     def set_monadic(self):
         self._monadic = True
@@ -42,11 +40,12 @@ class RememberingGenerator:
         return self
 
     def __next__(self):
-        params = next(self.iterator)
-        self.args = tuple([par.result if type(par) == Monad else par for par in params])
+        self._args = next(self.iterator)
+        self.args = tuple([par.result if type(par) == Monad else par for par in self._args])
         result = self.caller(*self.args)
+        self.last_monad = Monad(self.expander.function, result, self._args, self.kwargs)
         if self._monadic:
-            return Monad(self.expander.function, result, self.args, self.kwargs)
+            return self.last_monad
         return result
 
 
