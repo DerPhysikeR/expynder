@@ -9,43 +9,50 @@ class Monad(namedtuple("Monad", "function, result, args, kwargs")):
 
 class RememberingGenerator:
     def __init__(self, expander, generator, iterargs, iterkwargs):
-        self.expander = expander
-        self.generator = generator
-        self.iterargs = iterargs
-        self.iterkwargs = iterkwargs
-        self.caller = expander
+        self._expander = expander
+        self._generator = generator
+        self._iterargs, self._iterkwargs = iterargs, iterkwargs
         self._monadic = False
-        self.iterators = None
-        self.iterator = None
-        self.last_monad = None
-        self._args = ()
-        self.args = ()
-        self.kwargs = {}
+        self._iterator = None
+        self._last_monad = None
+        self._args, self._kwargs = (), {} # including monads
+
+    @property
+    def args(self):
+        return tuple(a.result if type(a) is Monad else a for a in self._args)
+
+    @property
+    def kwargs(self):
+        return {k: v.result if type(v) is Monad else v for k, v in self._kwargs}
 
     @property
     def call_stack(self):
-        return str(self.last_monad)
+        return str(self._last_monad)
 
     def set_monadic(self):
         self._monadic = True
 
     def __iter__(self):
-        self.iterators = [iter(arg) for arg in chain(self.iterargs, self.iterkwargs.values())]
-        for it in self.iterators:
+        iterators = [iter(arg) for arg in chain(self._iterargs, self._iterkwargs.values())]
+        for it in iterators:
             try:
                 it.set_monadic()
             except AttributeError:
                 pass
-        self.iterator = self.generator(*self.iterators)
+        self._iterator = self._generator(*iterators)
         return self
 
+    def _update_args_kwargs(self):
+        params = next(self._iterator)
+        self._args = params[: len(self._iterargs)]
+        self._kwargs = {k: v for k, v in zip(self._iterkwargs.keys(), params[len(self._iterargs):])}
+
     def __next__(self):
-        self._args = next(self.iterator)
-        self.args = tuple([par.result if type(par) == Monad else par for par in self._args])
-        result = self.caller(*self.args)
-        self.last_monad = Monad(self.expander.function, result, self._args, self.kwargs)
+        self._update_args_kwargs()
+        result = self._expander(*self.args, *self.kwargs)
+        self._last_monad = Monad(self._expander.function, result, self._args, self._kwargs)
         if self._monadic:
-            return self.last_monad
+            return self._last_monad
         return result
 
 
