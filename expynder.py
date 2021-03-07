@@ -14,12 +14,12 @@ class Monad(namedtuple("Monad", "function, result, args, kwargs")):
 class RememberingGenerator:
     def __init__(self, function, generator, iterargs, iterkwargs):
         self._function = function
-        self._generator = generator
+        self._generator_function = generator
         self._iterargs, self._iterkwargs = iterargs, iterkwargs
+        self._args, self._kwargs = (), {}  # including monads
         self._monadic = False
         self._iterator = None
         self._last_monad = None
-        self._args, self._kwargs = (), {}  # including monads
 
     @property
     def args(self):
@@ -51,7 +51,7 @@ class RememberingGenerator:
                 it.set_monadic()
             except AttributeError:
                 pass
-        self._iterator = self._generator(*iterators)
+        self._iterator = self._generator_function(*iterators)
         return self
 
     def _update_args_kwargs(self):
