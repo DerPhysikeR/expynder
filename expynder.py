@@ -23,13 +23,13 @@ class RememberingGenerator:
 
     @property
     def args(self):
-        return tuple(a.result if type(a) is Monad else a for a in self._args)
+        return tuple(a.result if isinstance(a, Monad) else a for a in self._args)
 
     @property
     def kwargs(self):
         kwargs = {}
         for k, v in self._kwargs.items():
-            if type(v) is Monad:
+            if isinstance(v, Monad):
                 kwargs[k] = v.result
             else:
                 kwargs[k] = v
