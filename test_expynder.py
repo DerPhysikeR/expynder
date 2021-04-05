@@ -1,6 +1,13 @@
 from expynder import expand
 
 
+def compare_dicts(a, b):
+    assert len(a) == len(b)
+    assert all(
+        ka == kb and va == vb for (ka, va), (kb, vb) in zip(a.items(), b.items())
+    )
+
+
 @expand
 def add(a, b=None):
     return a + b
@@ -57,3 +64,16 @@ def test_call_stack_with_kwargs():
         assert gen.args == args[i]
         assert gen.kwargs == kwargs[i]
         assert gen.call_stack == call_stack[i]
+
+
+def test_parameter_dict():
+    inputs = [1, 2, 3]
+    parameter_dicts = [
+        {"add.a": 1, "add.b.add.a": 1, "add.b.add.b": 1},
+        {"add.a": 2, "add.b.add.a": 2, "add.b.add.b": 2},
+        {"add.a": 3, "add.b.add.a": 3, "add.b.add.b": 3},
+    ]
+    results = [3, 6, 9]
+    for i, result in enumerate(gen := add.zip(inputs, b=add.zip(inputs, b=inputs))):
+        assert result == results[i]
+        compare_dicts(gen.parameter_dict, parameter_dicts[i])

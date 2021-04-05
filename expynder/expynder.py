@@ -1,5 +1,6 @@
 from collections import namedtuple
 from functools import update_wrapper
+from inspect import getfullargspec
 from itertools import chain, product
 
 
@@ -9,6 +10,23 @@ class Monad(namedtuple("Monad", "function, result, args, kwargs")):
         substrings.extend(str(arg) for arg in self.args)
         substrings.extend(f"{k}={v}" for k, v in self.kwargs.items())
         return f"{self.function.__name__}({', '.join(substrings)})"
+
+    def get_parameter_dict(self, prefix=""):
+        if not prefix:
+            prefix = self.function.__name__
+        else:
+            prefix = prefix + "." + self.function.__name__
+        parameter_dict = {}
+        for key, value in zip(
+            self.function.argnames, chain(self.args, self.kwargs.values())
+        ):
+            if isinstance(value, Monad):
+                parameter_dict.update(
+                    value.get_parameter_dict(value.function.__name__ + "." + key)
+                )
+            else:
+                parameter_dict[prefix + "." + key] = value
+        return parameter_dict
 
 
 class RememberingGenerator:
@@ -38,6 +56,10 @@ class RememberingGenerator:
     @property
     def call_stack(self):
         return str(self._last_monad)
+
+    @property
+    def parameter_dict(self):
+        return self._last_monad.get_parameter_dict()
 
     def set_monadic(self):
         self._monadic = True
@@ -73,6 +95,7 @@ class RememberingGenerator:
 class Expander:
     def __init__(self, function):
         self.function = function
+        self.argnames = getfullargspec(function)[0]
         update_wrapper(self, function)
 
     def __call__(self, *args, **kwargs):
