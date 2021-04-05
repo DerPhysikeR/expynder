@@ -76,4 +76,4 @@ def test_parameter_dict():
     results = [3, 6, 9]
     for i, result in enumerate(gen := add.zip(inputs, b=add.zip(inputs, b=inputs))):
         assert result == results[i]
-        compare_dicts(gen.parameter_dict, parameter_dicts[i])
+        compare_dicts(gen.parameter_dict(), parameter_dicts[i])

@@ -55,7 +55,6 @@ class RememberingGenerator:
     def call_stack(self):
         return str(self._last_monad)
 
-    @property
     def parameter_dict(self):
         return self._last_monad.get_parameter_dict()
 
