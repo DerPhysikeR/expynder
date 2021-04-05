@@ -42,6 +42,7 @@ class RememberingGenerator:
         self._monadic = False
         self._iterator = None
         self._last_monad = None
+        self._dry = False
 
     @property
     def args(self):
@@ -61,6 +62,10 @@ class RememberingGenerator:
     def call_stack(self):
         return str(self._last_monad)
 
+    def dryrun(self, dry=True):
+        self._dry = dry
+        return self
+
     def parameter_dict(self, intermediate_results=False):
         return self._last_monad.get_parameter_dict(
             intermediate_results=intermediate_results
@@ -76,6 +81,7 @@ class RememberingGenerator:
         for it in iterators:
             try:
                 it.set_monadic()
+                it.dryrun(self._dry)
             except AttributeError:
                 pass
         self._iterator = self._generator_function(*iterators)
@@ -90,7 +96,7 @@ class RememberingGenerator:
 
     def __next__(self):
         self._update_args_kwargs()
-        result = self._function(*self.args, **self.kwargs)
+        result = None if self._dry else self._function(*self.args, **self.kwargs)
         self._last_monad = Monad(self._function, result, self._args, self._kwargs)
         if self._monadic:
             return self._last_monad

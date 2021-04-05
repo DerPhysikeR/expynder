@@ -90,3 +90,17 @@ def test_parameter_dict_including_intermediate_results():
     for i, result in enumerate(gen := add.zip(inputs, b=add.zip(inputs, b=inputs))):
         assert result == results[i]
         compare_dicts(gen.parameter_dict(intermediate_results=True), parameter_dicts[i])
+
+
+def test_dryrun():
+    inputs = [1, 2, 3]
+    parameter_dicts = [
+        {"add.a": 1, "add.b.add.a": 1, "add.b.add.b": 1},
+        {"add.a": 2, "add.b.add.a": 2, "add.b.add.b": 2},
+        {"add.a": 3, "add.b.add.a": 3, "add.b.add.b": 3},
+    ]
+    for i, result in enumerate(
+        gen := add.zip(inputs, b=add.zip(inputs, b=inputs)).dryrun()
+    ):
+        assert result is None
+        compare_dicts(gen.parameter_dict(), parameter_dicts[i])
