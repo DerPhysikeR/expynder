@@ -18,8 +18,6 @@ for result in add.product([1, 2], [3, 4]):
     print(result)
 ```
 
-results in
-
 ```
 4
 5
@@ -33,8 +31,6 @@ These generators can also be nested.
 for result in add.product([1, 2], add([3], [4, 5])):
     print(result)
 ```
-
-results in
 
 ```
 4
