@@ -77,3 +77,16 @@ def test_parameter_dict():
     for i, result in enumerate(gen := add.zip(inputs, b=add.zip(inputs, b=inputs))):
         assert result == results[i]
         compare_dicts(gen.parameter_dict(), parameter_dicts[i])
+
+
+def test_parameter_dict_including_intermediate_results():
+    inputs = [1, 2, 3]
+    parameter_dicts = [
+        {"add.a": 1, "add.b": 2, "add.b.add.a": 1, "add.b.add.b": 1},
+        {"add.a": 2, "add.b": 4, "add.b.add.a": 2, "add.b.add.b": 2},
+        {"add.a": 3, "add.b": 6, "add.b.add.a": 3, "add.b.add.b": 3},
+    ]
+    results = [3, 6, 9]
+    for i, result in enumerate(gen := add.zip(inputs, b=add.zip(inputs, b=inputs))):
+        assert result == results[i]
+        compare_dicts(gen.parameter_dict(intermediate_results=True), parameter_dicts[i])
