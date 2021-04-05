@@ -11,21 +11,19 @@ class Monad(namedtuple("Monad", "function, result, args, kwargs")):
         substrings.extend(f"{k}={v}" for k, v in self.kwargs.items())
         return f"{self.function.__name__}({', '.join(substrings)})"
 
-    def get_parameter_dict(self, prefix=""):
-        if not prefix:
-            prefix = self.function.__name__
-        else:
-            prefix = prefix + "." + self.function.__name__
+    def get_parameter_dict(self, prefixes=None):
+        if prefixes is None:
+            prefixes = []
+        prefixes.append(self.function.__name__)
         parameter_dict = {}
         for key, value in zip(
             self.function.argnames, chain(self.args, self.kwargs.values())
         ):
+            pk = prefixes + [key]
             if isinstance(value, Monad):
-                parameter_dict.update(
-                    value.get_parameter_dict(value.function.__name__ + "." + key)
-                )
+                parameter_dict.update(value.get_parameter_dict(pk))
             else:
-                parameter_dict[prefix + "." + key] = value
+                parameter_dict[".".join(pk)] = value
         return parameter_dict
 
 
