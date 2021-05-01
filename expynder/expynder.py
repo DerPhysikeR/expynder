@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from collections import namedtuple
 from functools import update_wrapper
 from inspect import getfullargspec
@@ -33,7 +34,34 @@ class Monad(namedtuple("Monad", "function, result, args, kwargs")):
         return parameter_dict
 
 
-class RememberingGenerator:
+class Remember(ABC):
+    @property
+    @abstractmethod
+    def call_stack(self):
+        pass
+
+    @abstractmethod
+    def set_monadic(self):
+        pass
+
+    @abstractmethod
+    def dryrun(self):
+        pass
+
+    @abstractmethod
+    def parameter_dict(self):
+        pass
+
+    @abstractmethod
+    def __iter__(self):
+        pass
+
+    @abstractmethod
+    def __next__(self):
+        pass
+
+
+class RememberingGenerator(Remember):
     def __init__(self, function, generator, iterargs, iterkwargs):
         self._function = function
         self._generator_function = generator
