@@ -131,6 +131,53 @@ class RememberingGenerator(Remember):
         return result
 
 
+class Chain(Remember):
+    def __init__(self, *iterables):
+        self._iterables = iterables
+        self._iterators = None
+        self._iterator = None
+        self._dry = False
+        self._monadic = False
+        self._last_monad = None
+
+    @property
+    def call_stack(self):
+        return str(self._last_monad)
+
+    def set_monadic(self):
+        self._monadic = True
+
+    def dryrun(self, dry=True):
+        self._dry = dry
+        return self
+
+    def parameter_dict(self, intermediate_results=False):
+        return self._last_monad.get_parameter_dict(
+            intermediate_results=intermediate_results
+        )
+
+    def __iter__(self):
+        self._iterators = [iter(it) for it in self._iterables]
+        for it in self._iterators:
+            try:
+                it.set_monadic()
+                it.dryrun(self._dry)
+            except AttributeError:
+                pass
+        self._iterator = chain(*self._iterators)
+        return self
+
+    def __next__(self):
+        self._last_monad = next(self._iterator)
+        if self._monadic:
+            return self._last_monad
+        return self._last_monad.result
+
+
+def exchain(*args):
+    return Chain(*args)
+
+
 class Expander:
     def __init__(self, function):
         self.function = function

@@ -1,4 +1,4 @@
-from expynder import expand
+from expynder import expand, exchain
 
 
 def compare_dicts(a, b):
@@ -104,3 +104,25 @@ def test_dryrun():
     ):
         assert result is None
         compare_dicts(gen.parameter_dict(), parameter_dicts[i])
+
+
+def test_exchain_on_lowest_level():
+    results = [4, 6, 4, 6]
+    parameter_dicts = [
+        {"add.a": 1, "add.b": 3},
+        {"add.a": 2, "add.b": 4},
+        {"add.a": 1, "add.b": 3},
+        {"add.a": 2, "add.b": 4},
+    ]
+    call_stack = [
+        "add(1, 3)",
+        "add(2, 4)",
+        "add(1, 3)",
+        "add(2, 4)",
+    ]
+    for i, result in enumerate(
+        gen := exchain(add.zip([1, 2], [3, 4]), add.zip([1, 2], [3, 4]))
+    ):
+        assert result == results[i]
+        compare_dicts(gen.parameter_dict(), parameter_dicts[i])
+        assert gen.call_stack == call_stack[i]
