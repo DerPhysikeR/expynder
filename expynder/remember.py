@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from itertools import chain
+from itertools import chain, product
 from .monad import Monad
 
 
@@ -27,6 +27,10 @@ class Remember(ABC):
 
     @abstractmethod
     def __next__(self):
+        pass
+
+    @abstractmethod
+    def __len__(self):
         pass
 
 
@@ -99,6 +103,19 @@ class RememberingGenerator(Remember):
             return self._last_monad
         return result
 
+    def __len__(self):
+        if self._generator_function is product:
+            total = 1
+            for it in chain(self._iterargs, self._iterkwargs):
+                total *= len(it)
+            return total
+        try:
+            if self._generator_function is zip:
+                return min(len(it) for it in chain(self._iterargs, self._iterkwargs))
+        except TypeError:
+            pass
+        return None
+
 
 class Chain(Remember):
     def __init__(self, *iterables):
@@ -141,6 +158,9 @@ class Chain(Remember):
         if self._monadic:
             return self._last_monad
         return self._last_monad.result
+
+    def __len__(self):
+        return sum(len(it) for it in self._iterables)
 
 
 def exchain(*args):

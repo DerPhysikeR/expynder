@@ -139,6 +139,7 @@ def test_exchain_not_on_lowest_level():
     for i, result in enumerate(
         gen := add.product([1], exchain([1, 2], add.zip([1, 2], [3, 4])))
     ):
+        assert len(gen) == 4
         assert result == results[i]
         assert gen.call_stack == call_stack[i]
     assert i == 3
