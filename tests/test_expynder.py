@@ -126,3 +126,19 @@ def test_exchain_on_lowest_level():
         assert result == results[i]
         compare_dicts(gen.parameter_dict(), parameter_dicts[i])
         assert gen.call_stack == call_stack[i]
+
+
+def test_exchain_not_on_lowest_level():
+    results = [2, 3, 5, 7]
+    call_stack = [
+        "add(1, 1)",
+        "add(1, 2)",
+        "add(1, add(1, 3))",
+        "add(1, add(2, 4))",
+    ]
+    for i, result in enumerate(
+        gen := add.product([1], exchain([1, 2], add.zip([1, 2], [3, 4])))
+    ):
+        assert result == results[i]
+        assert gen.call_stack == call_stack[i]
+    assert i == 3
