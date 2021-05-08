@@ -17,7 +17,7 @@ class Remember(ABC):
         pass
 
     @abstractmethod
-    def parameter_dict(self):
+    def get_parameter_dict(self):
         pass
 
     @abstractmethod
@@ -65,7 +65,7 @@ class RememberingGenerator(Remember):
         self._dry = dry
         return self
 
-    def parameter_dict(self, intermediate_results=False):
+    def get_parameter_dict(self, intermediate_results=False):
         return self._last_monad.get_parameter_dict(
             intermediate_results=intermediate_results
         )
@@ -134,7 +134,7 @@ class Chain(Remember):
         self._dry = dry
         return self
 
-    def parameter_dict(self, intermediate_results=False):
+    def get_parameter_dict(self, intermediate_results=False):
         return self._last_monad.get_parameter_dict(
             intermediate_results=intermediate_results
         )

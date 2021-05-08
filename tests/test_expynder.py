@@ -66,7 +66,7 @@ def test_get_call_stack_with_kwargs():
         assert gen.get_call_stack() == get_call_stack[i]
 
 
-def test_parameter_dict():
+def test_get_parameter_dict():
     inputs = [1, 2, 3]
     parameter_dicts = [
         {"add.a": 1, "add.b.add.a": 1, "add.b.add.b": 1},
@@ -76,10 +76,10 @@ def test_parameter_dict():
     results = [3, 6, 9]
     for i, result in enumerate(gen := add.zip(inputs, b=add.zip(inputs, b=inputs))):
         assert result == results[i]
-        compare_dicts(gen.parameter_dict(), parameter_dicts[i])
+        compare_dicts(gen.get_parameter_dict(), parameter_dicts[i])
 
 
-def test_parameter_dict_including_intermediate_results():
+def test_get_parameter_dict_including_intermediate_results():
     inputs = [1, 2, 3]
     parameter_dicts = [
         {"add.a": 1, "add.b": 2, "add.b.add.a": 1, "add.b.add.b": 1},
@@ -89,7 +89,9 @@ def test_parameter_dict_including_intermediate_results():
     results = [3, 6, 9]
     for i, result in enumerate(gen := add.zip(inputs, b=add.zip(inputs, b=inputs))):
         assert result == results[i]
-        compare_dicts(gen.parameter_dict(intermediate_results=True), parameter_dicts[i])
+        compare_dicts(
+            gen.get_parameter_dict(intermediate_results=True), parameter_dicts[i]
+        )
 
 
 def test_dryrun():
@@ -103,7 +105,7 @@ def test_dryrun():
         gen := add.zip(inputs, b=add.zip(inputs, b=inputs)).dryrun()
     ):
         assert result is None
-        compare_dicts(gen.parameter_dict(), parameter_dicts[i])
+        compare_dicts(gen.get_parameter_dict(), parameter_dicts[i])
 
 
 def test_exchain_on_lowest_level():
@@ -124,7 +126,7 @@ def test_exchain_on_lowest_level():
         gen := exchain(add.zip([1, 2], [3, 4]), add.zip([1, 2], [3, 4]))
     ):
         assert result == results[i]
-        compare_dicts(gen.parameter_dict(), parameter_dicts[i])
+        compare_dicts(gen.get_parameter_dict(), parameter_dicts[i])
         assert gen.get_call_stack() == get_call_stack[i]
 
 
