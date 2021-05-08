@@ -38,23 +38,23 @@ def test_nested_expanders():
         assert gen.args == parameters[i]
 
 
-def test_call_stack():
+def test_get_call_stack():
     inputs = [1, 2, 3]
     results = [3, 6, 9]
     parameters = [(1, 2), (2, 4), (3, 6)]
-    call_stack = ["add(1, add(1, 1))", "add(2, add(2, 2))", "add(3, add(3, 3))"]
+    get_call_stack = ["add(1, add(1, 1))", "add(2, add(2, 2))", "add(3, add(3, 3))"]
     for i, result in enumerate(gen := add.zip(inputs, add.zip(inputs, inputs))):
         assert result == results[i]
         assert gen.args == parameters[i]
-        assert gen.call_stack == call_stack[i]
+        assert gen.get_call_stack() == get_call_stack[i]
 
 
-def test_call_stack_with_kwargs():
+def test_get_call_stack_with_kwargs():
     inputs = [1, 2, 3]
     results = [3, 6, 9]
     args = [(1,), (2,), (3,)]
     kwargs = [{"b": 2}, {"b": 4}, {"b": 6}]
-    call_stack = [
+    get_call_stack = [
         "add(1, b=add(1, b=1))",
         "add(2, b=add(2, b=2))",
         "add(3, b=add(3, b=3))",
@@ -63,7 +63,7 @@ def test_call_stack_with_kwargs():
         assert result == results[i]
         assert gen.args == args[i]
         assert gen.kwargs == kwargs[i]
-        assert gen.call_stack == call_stack[i]
+        assert gen.get_call_stack() == get_call_stack[i]
 
 
 def test_parameter_dict():
@@ -114,7 +114,7 @@ def test_exchain_on_lowest_level():
         {"add.a": 1, "add.b": 3},
         {"add.a": 2, "add.b": 4},
     ]
-    call_stack = [
+    get_call_stack = [
         "add(1, 3)",
         "add(2, 4)",
         "add(1, 3)",
@@ -125,12 +125,12 @@ def test_exchain_on_lowest_level():
     ):
         assert result == results[i]
         compare_dicts(gen.parameter_dict(), parameter_dicts[i])
-        assert gen.call_stack == call_stack[i]
+        assert gen.get_call_stack() == get_call_stack[i]
 
 
 def test_exchain_not_on_lowest_level():
     results = [2, 3, 5, 7]
-    call_stack = [
+    get_call_stack = [
         "add(1, 1)",
         "add(1, 2)",
         "add(1, add(1, 3))",
@@ -141,5 +141,5 @@ def test_exchain_not_on_lowest_level():
     ):
         assert len(gen) == 4
         assert result == results[i]
-        assert gen.call_stack == call_stack[i]
+        assert gen.get_call_stack() == get_call_stack[i]
     assert i == 3

@@ -4,9 +4,8 @@ from .monad import Monad
 
 
 class Remember(ABC):
-    @property
     @abstractmethod
-    def call_stack(self):
+    def get_call_stack(self):
         pass
 
     @abstractmethod
@@ -59,8 +58,7 @@ class RememberingGenerator(Remember):
                 kwargs[k] = v
         return kwargs
 
-    @property
-    def call_stack(self):
+    def get_call_stack(self):
         return str(self._last_monad)
 
     def dryrun(self, dry=True):
@@ -126,8 +124,7 @@ class Chain(Remember):
         self._monadic = False
         self._last_monad = None
 
-    @property
-    def call_stack(self):
+    def get_call_stack(self):
         return str(self._last_monad)
 
     def set_monadic(self):
