@@ -1,4 +1,4 @@
-from expynder import expand, exchain
+from expynder import expand, exchain, excycle
 
 
 def compare_dicts(a, b):
@@ -142,6 +142,22 @@ def test_exchain_not_on_lowest_level():
         gen := add.product([1], exchain([1, 2], add.zip([1, 2], [3, 4])))
     ):
         assert len(gen) == 4
+        assert result == results[i]
+        assert gen.get_call_stack() == get_call_stack[i]
+    assert i == 3
+
+
+def test_excycle():
+    results = [5, 8, 7, 10]
+    get_call_stack = [
+        "add(1, add(1, 3))",
+        "add(2, add(2, 4))",
+        "add(3, add(1, 3))",
+        "add(4, add(2, 4))",
+    ]
+    for i, result in enumerate(
+        gen := add.zip([1, 2, 3, 4], excycle(add.zip([1, 2], [3, 4])))
+    ):
         assert result == results[i]
         assert gen.get_call_stack() == get_call_stack[i]
     assert i == 3

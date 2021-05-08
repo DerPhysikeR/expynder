@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from itertools import chain, product
+from itertools import chain, product, cycle
 from .monad import Monad
 
 
@@ -162,3 +162,50 @@ class Chain(Remember):
 
 def exchain(*args):
     return Chain(*args)
+
+
+class Cycle(Remember):
+    def __init__(self, iterable):
+        self._iterable = iterable
+        self._iterator = None
+        self._dry = False
+        self._monadic = False
+        self._last_monad = None
+
+    def get_call_stack(self):
+        return str(self._last_monad)
+
+    def set_monadic(self):
+        self._monadic = True
+
+    def dryrun(self, dry=True):
+        self._dry = dry
+        return self
+
+    def get_parameter_dict(self, intermediate_results=False):
+        return self._last_monad.get_parameter_dict(
+            intermediate_results=intermediate_results
+        )
+
+    def __iter__(self):
+        self._iterator = iter(self._iterable)
+        try:
+            self._iterator.set_monadic()
+            self._iterator.dryrun(self._dry)
+        except AttributeError:
+            pass
+        self._iterator = cycle(self._iterator)
+        return self
+
+    def __next__(self):
+        self._last_monad = next(self._iterator)
+        if self._monadic:
+            return self._last_monad
+        return self._last_monad.result
+
+    def __len__(self):
+        return None
+
+
+def excycle(iterable):
+    return Cycle(iterable)
