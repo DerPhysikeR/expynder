@@ -25,6 +25,14 @@ class Remember(ABC):
             intermediate_results=intermediate_results
         )
 
+    def _set_parent_iterators(self, *iterators):
+        for it in iterators:
+            try:
+                it.set_monadic()
+                it.dryrun(self._dry)
+            except AttributeError:
+                pass
+
     @abstractmethod
     def __iter__(self):
         pass
@@ -65,12 +73,7 @@ class RememberingGenerator(Remember):
         iterators = [
             iter(arg) for arg in chain(self._iterargs, self._iterkwargs.values())
         ]
-        for it in iterators:
-            try:
-                it.set_monadic()
-                it.dryrun(self._dry)
-            except AttributeError:
-                pass
+        self._set_parent_iterators(*iterators)
         self._iterator = self._generator_function(*iterators)
         return self
 
@@ -106,19 +109,13 @@ class RememberingGenerator(Remember):
 class Chain(Remember):
     def __init__(self, *iterables):
         self._iterables = iterables
-        self._iterators = None
         self._iterator = None
         super().__init__()
 
     def __iter__(self):
-        self._iterators = [iter(it) for it in self._iterables]
-        for it in self._iterators:
-            try:
-                it.set_monadic()
-                it.dryrun(self._dry)
-            except AttributeError:
-                pass
-        self._iterator = chain(*self._iterators)
+        iterators = [iter(it) for it in self._iterables]
+        self._set_parent_iterators(*iterators)
+        self._iterator = chain(*iterators)
         return self
 
     def __next__(self):
@@ -142,13 +139,9 @@ class Cycle(Remember):
         super().__init__()
 
     def __iter__(self):
-        self._iterator = iter(self._iterable)
-        try:
-            self._iterator.set_monadic()
-            self._iterator.dryrun(self._dry)
-        except AttributeError:
-            pass
-        self._iterator = cycle(self._iterator)
+        iterator = iter(self._iterable)
+        self._set_parent_iterators(iterator)
+        self._iterator = cycle(iterator)
         return self
 
     def __next__(self):
