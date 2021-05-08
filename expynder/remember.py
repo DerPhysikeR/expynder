@@ -5,20 +5,25 @@ from .monad import Monad
 
 class Remember(ABC):
     @abstractmethod
+    def __init__(self):
+        self._dry = False
+        self._monadic = False
+        self._last_monad = None
+
     def get_call_stack(self):
-        pass
+        return str(self._last_monad)
 
-    @abstractmethod
     def set_monadic(self):
-        pass
+        self._monadic = True
 
-    @abstractmethod
-    def dryrun(self):
-        pass
+    def dryrun(self, dry=True):
+        self._dry = dry
+        return self
 
-    @abstractmethod
-    def get_parameter_dict(self):
-        pass
+    def get_parameter_dict(self, intermediate_results=False):
+        return self._last_monad.get_parameter_dict(
+            intermediate_results=intermediate_results
+        )
 
     @abstractmethod
     def __iter__(self):
@@ -39,10 +44,8 @@ class RememberingGenerator(Remember):
         self._generator_function = generator
         self._iterargs, self._iterkwargs = iterargs, iterkwargs
         self._args, self._kwargs = (), {}  # including monads
-        self._monadic = False
         self._iterator = None
-        self._last_monad = None
-        self._dry = False
+        super().__init__()
 
     @property
     def args(self):
@@ -57,21 +60,6 @@ class RememberingGenerator(Remember):
             else:
                 kwargs[k] = v
         return kwargs
-
-    def get_call_stack(self):
-        return str(self._last_monad)
-
-    def dryrun(self, dry=True):
-        self._dry = dry
-        return self
-
-    def get_parameter_dict(self, intermediate_results=False):
-        return self._last_monad.get_parameter_dict(
-            intermediate_results=intermediate_results
-        )
-
-    def set_monadic(self):
-        self._monadic = True
 
     def __iter__(self):
         iterators = [
@@ -120,24 +108,7 @@ class Chain(Remember):
         self._iterables = iterables
         self._iterators = None
         self._iterator = None
-        self._dry = False
-        self._monadic = False
-        self._last_monad = None
-
-    def get_call_stack(self):
-        return str(self._last_monad)
-
-    def set_monadic(self):
-        self._monadic = True
-
-    def dryrun(self, dry=True):
-        self._dry = dry
-        return self
-
-    def get_parameter_dict(self, intermediate_results=False):
-        return self._last_monad.get_parameter_dict(
-            intermediate_results=intermediate_results
-        )
+        super().__init__()
 
     def __iter__(self):
         self._iterators = [iter(it) for it in self._iterables]
@@ -168,24 +139,7 @@ class Cycle(Remember):
     def __init__(self, iterable):
         self._iterable = iterable
         self._iterator = None
-        self._dry = False
-        self._monadic = False
-        self._last_monad = None
-
-    def get_call_stack(self):
-        return str(self._last_monad)
-
-    def set_monadic(self):
-        self._monadic = True
-
-    def dryrun(self, dry=True):
-        self._dry = dry
-        return self
-
-    def get_parameter_dict(self, intermediate_results=False):
-        return self._last_monad.get_parameter_dict(
-            intermediate_results=intermediate_results
-        )
+        super().__init__()
 
     def __iter__(self):
         self._iterator = iter(self._iterable)
